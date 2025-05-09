@@ -3,7 +3,7 @@ import re
 import random
 import streamlit.components.v1 as components
 
-# --- Helper function for clipboard copy ---
+# --- Helper function for clipboard copy (no alert) ---
 def copy_to_clipboard(text):
     components.html(f"""
     <style>
@@ -22,11 +22,7 @@ def copy_to_clipboard(text):
     <script>
     function copyText() {{
         const text = `{text}`;
-        navigator.clipboard.writeText(text).then(function() {{
-            alert('✅ Password copied to clipboard!');
-        }}, function(err) {{
-            alert('❌ Failed to copy text: ' + err);
-        }});
+        navigator.clipboard.writeText(text);
     }}
     </script>
     <button class="copy-btn" onclick="copyText()">📋 Copy to Clipboard</button>

@@ -1,18 +1,13 @@
 import streamlit as st
 import re
 import random
+from streamlit import components
 
 def has_sequential_chars(s, min_length=3):
     for i in range(len(s) - min_length + 1):
         current_slice = s[i:i+min_length]
-        is_ascending = all(
-            ord(current_slice[j]) - ord(current_slice[j-1]) == 1
-            for j in range(1, min_length)
-        )
-        is_descending = all(
-            ord(current_slice[j-1]) - ord(current_slice[j]) == 1
-            for j in range(1, min_length)
-        )
+        is_ascending = all(ord(current_slice[j]) - ord(current_slice[j-1]) == 1 for j in range(1, min_length))
+        is_descending = all(ord(current_slice[j-1]) - ord(current_slice[j]) == 1 for j in range(1, min_length))
         if is_ascending or is_descending:
             return True
     return False
@@ -92,6 +87,36 @@ def check_password_strength(password):
     score = max(0, score)
     return score, feedback
 
+def copy_to_clipboard(text):
+    components.html(f"""
+    <style>
+        .copy-button {{
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }}
+        .copy-button:hover {{
+            background-color: #45a049;
+        }}
+    </style>
+    <script>
+        function copyText() {{
+            navigator.clipboard.writeText(`{text}`).then(function() {{
+                alert('✅ Password copied to clipboard!');
+            }}, function(err) {{
+                alert('❌ Failed to copy text: ' + err);
+            }});
+        }}
+    </script>
+    <button class="copy-button" onclick="copyText()">📋 Copy to Clipboard</button>
+    """, height=100)
+
 def main():
     st.set_page_config(page_title="Password Strength Meter", page_icon="🔒")
     st.title("🔐 Password Strength Analyzer")
@@ -112,6 +137,7 @@ def main():
     if 'generated_password' in st.session_state:
         st.code(f"Generated Password: {st.session_state.generated_password}", language="bash")
         st.text_input("📋 Copy this password manually:", value=st.session_state.generated_password, key="copy_pass")
+        copy_to_clipboard(st.session_state.generated_password)
 
     if password:
         with st.spinner("Analyzing password..."):
@@ -151,6 +177,7 @@ def main():
                 example_pass = generate_strong_password()
                 st.code(example_pass, language="bash")
                 st.text_input("📋 Copy this example password:", value=example_pass, key="copy_example")
+                copy_to_clipboard(example_pass)
 
     st.markdown("---")
     with st.expander("ℹ About This Tool"):

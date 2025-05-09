@@ -1,17 +1,54 @@
 import streamlit as st
 import re
 import random
-from streamlit import components
+import streamlit.components.v1 as components
 
+# --- Helper function for clipboard copy ---
+def copy_to_clipboard(text):
+    components.html(f"""
+    <style>
+        .copy-btn {{
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }}
+    </style>
+    <script>
+    function copyText() {{
+        const text = `{text}`;
+        navigator.clipboard.writeText(text).then(function() {{
+            alert('✅ Password copied to clipboard!');
+        }}, function(err) {{
+            alert('❌ Failed to copy text: ' + err);
+        }});
+    }}
+    </script>
+    <button class="copy-btn" onclick="copyText()">📋 Copy to Clipboard</button>
+    """, height=100)
+
+# --- Sequential character check ---
 def has_sequential_chars(s, min_length=3):
     for i in range(len(s) - min_length + 1):
         current_slice = s[i:i+min_length]
-        is_ascending = all(ord(current_slice[j]) - ord(current_slice[j-1]) == 1 for j in range(1, min_length))
-        is_descending = all(ord(current_slice[j-1]) - ord(current_slice[j]) == 1 for j in range(1, min_length))
+        is_ascending = all(
+            ord(current_slice[j]) - ord(current_slice[j-1]) == 1
+            for j in range(1, min_length)
+        )
+        is_descending = all(
+            ord(current_slice[j-1]) - ord(current_slice[j]) == 1
+            for j in range(1, min_length)
+        )
         if is_ascending or is_descending:
             return True
     return False
 
+# --- Repeated character check ---
 def has_repeated_chars(s, min_length=3):
     for i in range(len(s) - min_length + 1):
         current_slice = s[i:i+min_length]
@@ -19,6 +56,7 @@ def has_repeated_chars(s, min_length=3):
             return True
     return False
 
+# --- Generate strong password ---
 def generate_strong_password(length=12):
     uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     lowercase = 'abcdefghijklmnopqrstuvwxyz'
@@ -36,6 +74,7 @@ def generate_strong_password(length=12):
     random.shuffle(password)
     return ''.join(password)
 
+# --- Password strength check ---
 def check_password_strength(password):
     common_passwords = [
         'password', '123456', '12345678', 'qwerty', 'abc123',
@@ -87,36 +126,7 @@ def check_password_strength(password):
     score = max(0, score)
     return score, feedback
 
-def copy_to_clipboard(text):
-    components.html(f"""
-    <style>
-        .copy-button {{
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
-        }}
-        .copy-button:hover {{
-            background-color: #45a049;
-        }}
-    </style>
-    <script>
-        function copyText() {{
-            navigator.clipboard.writeText(`{text}`).then(function() {{
-                alert('✅ Password copied to clipboard!');
-            }}, function(err) {{
-                alert('❌ Failed to copy text: ' + err);
-            }});
-        }}
-    </script>
-    <button class="copy-button" onclick="copyText()">📋 Copy to Clipboard</button>
-    """, height=100)
-
+# --- Main App ---
 def main():
     st.set_page_config(page_title="Password Strength Meter", page_icon="🔒")
     st.title("🔐 Password Strength Analyzer")
@@ -136,7 +146,6 @@ def main():
 
     if 'generated_password' in st.session_state:
         st.code(f"Generated Password: {st.session_state.generated_password}", language="bash")
-        st.text_input("📋 Copy this password manually:", value=st.session_state.generated_password, key="copy_pass")
         copy_to_clipboard(st.session_state.generated_password)
 
     if password:
@@ -176,7 +185,6 @@ def main():
             if st.button("🛠 Show Strong Password Example"):
                 example_pass = generate_strong_password()
                 st.code(example_pass, language="bash")
-                st.text_input("📋 Copy this example password:", value=example_pass, key="copy_example")
                 copy_to_clipboard(example_pass)
 
     st.markdown("---")
@@ -188,7 +196,7 @@ def main():
         - Pattern analysis (sequences & repetitions)
         - Real-time strength meter
         - One-click password generation
-        - Detailed improvement suggestions
+        - Clipboard copy support (no external tool needed)
 
         ### Security Criteria:
         - ✅ Minimum 8 characters

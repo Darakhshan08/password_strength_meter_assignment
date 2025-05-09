@@ -3,6 +3,7 @@ import re
 import random
 import pyperclip  # Added for clipboard functionality
 
+
 def has_sequential_chars(s, min_length=3):
     for i in range(len(s) - min_length + 1):
         current_slice = s[i:i+min_length]
